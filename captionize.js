@@ -168,6 +168,10 @@ function displaySpeaker(speaker, speakers, content) {
     : content;
 }
 
+function boldText(str) {
+  return colors.bold(str);
+}
+
 function renderRangeTable(index, paragraphs, speakers, tableConfig) {
   let table = new Table(tableConfig);
   const PADDING = 5;
@@ -181,22 +185,21 @@ function renderRangeTable(index, paragraphs, speakers, tableConfig) {
   const tempIndex = paragraphs[index].oldIndex;
 
   displayParagraph.forEach((p, i) => {
-    const col = (str) => colors.bold(str);
     const matchedIndex = p.oldIndex === tempIndex;
     let oldIndex = p.oldIndex,
       timestamp = p.timestampLine,
       content_1 = displaySpeaker(p.speaker_1, speakers, p.content_1),
       content_2 = displaySpeaker(p.speaker_2, speakers, p.content_2),
-      displayIndex = index + (i - PADDING);
-    if (displayIndex < 0) {
-      displayIndex += PADDING;
-    }
+      displayIndex = index - (PADDING - i);
+      if(displayIndex < 0) {
+        displayIndex += PADDING;
+      }
     if (matchedIndex) {
-      displayIndex = col(displayIndex);
-      oldIndex = col(oldIndex);
-      timestamp = col(timestamp);
-      content_1 = col(content_1);
-      content_2 = col(content_2);
+      displayIndex = boldText(displayIndex);
+      oldIndex = boldText(oldIndex);
+      timestamp = boldText(timestamp);
+      content_1 = boldText(content_1);
+      content_2 = boldText(content_2);
     }
     table.push([displayIndex, oldIndex, timestamp, content_1, content_2]);
   });
@@ -218,7 +221,7 @@ async function askWhoSpeaker(index, paragraphs, speakers) {
   /* Unable to display count correctly */
   // const choices = speakers.map((s, si) => ({ value: si, name: `${s.name} (${s.count})` }));
   const choices = speakers.map((s, si) => ({ value: si, name: `${s.name}` }));
-  choices.push({
+  choices.unshift({
     name: "[blank]",
     value: "",
   });
