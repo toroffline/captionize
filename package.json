@@ -1,0 +1,20 @@
+{
+  "name": "mook-caption",
+  "version": "1.0.0",
+  "description": "",
+  "main": "captionize.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cli-table": "^0.3.11",
+    "colors": "^1.4.0",
+    "console-table-printer": "^2.11.1",
+    "inquirer": "^9.2.6",
+    "log-update": "^5.0.1",
+    "prettier": "^2.8.8"
+  }
+}
