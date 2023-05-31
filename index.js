@@ -40,14 +40,18 @@ function collectData(fileName) {
   let paragraphs = [];
   let oldIndex = 1;
   let lineCount = 0;
-  let timestampLine = "";
-  let content1 = "";
-  let content2 = "";
+  let timestampDisplay = "";
+  let contents = [];
+  let content = "";
   const timestampRegex = /(\d+):(\d+):(\d+),(\d+) --> (\d+):(\d+):(\d+),(\d+)/;
 
   for (let i = 0; i < chars.length; i++) {
-    if (chars[i] == "\n" && chars[i - 1] == "\n") {
-      const matched = timestampLine.match(timestampRegex);
+    const char = chars[i];
+    if (
+      (char === "\n" && chars[i - 1] === "\n") ||
+      (char === "\n" && chars[i - 2] === "\n")
+    ) {
+      const matched = timestampDisplay.match(timestampRegex);
       const timestamp = {
         from: {
           h: +matched[1],
@@ -65,31 +69,29 @@ function collectData(fileName) {
       const paragraph = {
         oldIndex,
         timestamp,
-        timestampLine: timestampLine,
-        content_1: content1.replace("\r", ""),
-        content_2: content2.replace("\r", ""),
-        speaker_1: "",
-        speaker_2: "",
-        isDirty: false,
+        timestampDisplay: timestampDisplay.replace("\r", ""),
+        contents,
       };
-
       paragraphs.push(paragraph);
       oldIndex += 1;
       lineCount = 0;
-      timestampLine = "";
-      content1 = "";
-      content2 = "";
+      timestampDisplay = "";
       continue;
     }
-    if (chars[i] != "\n") {
+    if (char !== "\n") {
       if (lineCount == 1) {
-        timestampLine += chars[i];
-      } else if (lineCount == 2) {
-        content1 += chars[i];
-      } else if (lineCount == 3) {
-        content2 += chars[i];
+        timestampDisplay += char;
+      } else if (lineCount >= 2) {
+        content += char;
       }
     } else {
+      if (lineCount >= 2) {
+        contents.push({
+          content: content.replaceAll("\r", ""),
+          speaker: 0,
+        });
+        content = "";
+      }
       lineCount += 1;
     }
   }
@@ -102,7 +104,7 @@ function exportResultAsFile(paragraphs, fileName) {
   for (let i = 0; i < paragraphs.length; i++) {
     const paragraph = paragraphs[i];
     result += `${i + 1}\n`;
-    result += `${paragraph.timestampLine}\n`;
+    result += `${paragraph.timestampDisplay}\n`;
     if (paragraph.content_1) {
       if (paragraph.speaker_1) {
         const speaker = patternSpeaker.replace("{name}", paragraph.speaker_1);
@@ -133,7 +135,7 @@ function exportResultAsFile(paragraphs, fileName) {
   }
 }
 
-function getSpeakers(fileName) {
+export function getSpeakers(fileName) {
   let speakers = [];
   try {
     const chars = fs.readFileSync(`${fileName}-speaker_obj.txt`, "utf-8");
@@ -187,13 +189,13 @@ function renderRangeTable(index, paragraphs, speakers, tableConfig) {
   displayParagraph.forEach((p, i) => {
     const matchedIndex = p.oldIndex === tempIndex;
     let oldIndex = p.oldIndex,
-      timestamp = p.timestampLine,
+      timestamp = p.timestampDisplay,
       content_1 = displaySpeaker(p.speaker_1, speakers, p.content_1),
       content_2 = displaySpeaker(p.speaker_2, speakers, p.content_2),
       displayIndex = index - (PADDING - i);
-      if(displayIndex < 0) {
-        displayIndex += PADDING;
-      }
+    if (displayIndex < 0) {
+      displayIndex += PADDING;
+    }
     if (matchedIndex) {
       displayIndex = boldText(displayIndex);
       oldIndex = boldText(oldIndex);
@@ -340,11 +342,11 @@ async function renderTable(paragraphs, speakers) {
     for (let i = 0; i < paginated.length; i++) {
       const p = paginated[i];
       let index = (page - 1) * pageSize + i;
-      index = p.isDirty ? colors.green(index) : index;
-      const oldIndex = p.isDirty ? colors.green(p.oldIndex) : p.oldIndex;
-      const timestamp = p.isDirty
-        ? colors.green(p.timestampLine)
-        : p.timestampLine;
+      index = p.isTagComplete ? colors.green(index) : index;
+      const oldIndex = p.isTagComplete ? colors.green(p.oldIndex) : p.oldIndex;
+      const timestamp = p.isTagComplete
+        ? colors.green(p.timestampDisplay)
+        : p.timestampDisplay;
       const content_1 = displaySpeaker(p.speaker_1, speakers, p.content_1),
         content_2 = displaySpeaker(p.speaker_2, speakers, p.content_2);
       table.push([index, oldIndex, timestamp, content_1, content_2]);
@@ -365,7 +367,7 @@ async function renderTable(paragraphs, speakers) {
     } else if (choice === _choices.back) {
       page -= 1;
     } else if (choice === _choices.jumpToLatestUntagged) {
-      const latestUntaggedIndex = paragraphs.findIndex((p) => !p.isDirty);
+      const latestUntaggedIndex = paragraphs.findIndex((p) => !p.isTagComplete);
       page = Math.floor(latestUntaggedIndex / pageSize) + 1;
     } else if (choice === _choices.jumpToIndex) {
       const index = await inquirer
@@ -399,7 +401,7 @@ async function tagFromLatestUntagged(paragraphs, speakers, fileName) {
   console.clear();
   for (let i = 0; i < paragraphs.length; i++) {
     const p = paragraphs[i];
-    if (p.isDirty) {
+    if (p.isTagComplete) {
       continue;
     }
     const { speaker_1, speaker_2 } = await askWhoSpeaker(
@@ -410,7 +412,7 @@ async function tagFromLatestUntagged(paragraphs, speakers, fileName) {
     if (speaker_1 === "exit" || speaker_2 === "exit") {
       break;
     }
-    p.isDirty = true;
+    p.isTagComplete = true;
     if (isTruthyExceptZero(speaker_1)) {
       speakers[speaker_1].count += 1;
       p.speaker_1 = speaker_1;
@@ -537,8 +539,7 @@ function logInfo(text) {
   console.log(colors.dim(text));
 }
 
-function main() {
-  const fileName = "caption.th_TH (3)";
+export function getParagraphs(fileName) {
   let paragraphs = getLatestResult(fileName);
   if (!paragraphs) {
     logInfo(">> Generating files... ");
@@ -549,9 +550,15 @@ function main() {
     );
     saveResult(fileName, paragraphs);
   }
-  const speakers = getSpeakers(fileName);
-  renderMainMenu(paragraphs, speakers, fileName);
+
+  return paragraphs;
 }
 
-console.clear();
+function main() {
+  const fileName = "caption.th_TH (3)";
+  const paragraphs = getParagraphs(fileName);
+  // const speakers = getSpeakers(fileName);
+  // renderMainMenu(paragraphs, speakers, fileName);
+}
+
 main();

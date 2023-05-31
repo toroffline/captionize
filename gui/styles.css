@@ -1,0 +1,32 @@
+.preview {
+ height: 20vh; 
+ background-color: grey;
+ display: flex;
+ justify-content: center;
+}
+
+.sub-manage-center {
+  border: 10px solid black;
+}
+
+.scene {
+  display: flex;
+  justify-content: center;
+  background: black;
+  height: 100%;
+  width: 50vw;
+  padding-bottom: 1rem;
+}
+
+.text-preview {
+  color: white;
+  align-self: end;
+}
+
+table {
+    width: 100%;
+}
+
+tr.editing {
+  background-color: wheat;
+}
