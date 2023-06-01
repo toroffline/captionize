@@ -48,10 +48,11 @@ function collectData(fileName) {
   for (let i = 0; i < chars.length; i++) {
     const char = chars[i];
     if (
-      (char === "\n" && chars[i - 1] === "\n") ||
-      (char === "\n" && chars[i - 2] === "\n")
+      (char === "\n" && chars[i - 1] === "\n")
+      // || (char === "\n" && chars[i - 2] === "\n")
     ) {
       const matched = timestampDisplay.match(timestampRegex);
+      console.log({ matched, contents, timestampDisplay});
       const timestamp = {
         from: {
           h: +matched[1],
@@ -76,6 +77,7 @@ function collectData(fileName) {
       oldIndex += 1;
       lineCount = 0;
       timestampDisplay = "";
+      contents = [];
       continue;
     }
     if (char !== "\n") {
@@ -87,8 +89,8 @@ function collectData(fileName) {
     } else {
       if (lineCount >= 2) {
         contents.push({
-          content: content.replaceAll("\r", ""),
-          speaker: 0,
+          content: content.replace("\r", ""),
+          speaker: null,
         });
         content = "";
       }

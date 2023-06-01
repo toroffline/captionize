@@ -29,10 +29,6 @@ app.get("/data", (_req, res) => {
   const fileName = "caption.th_TH (3)";
   const paragraphs = getParagraphs(fileName);
   const speakers = getSpeakers(fileName);
-  speakers.unshift({
-    name: '[blank]',
-    count: 0
-  });
   res.send({ paragraphs, speakers });
 });
 

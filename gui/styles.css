@@ -1,8 +1,8 @@
 .preview {
- height: 20vh; 
  background-color: grey;
  display: flex;
  justify-content: center;
+ overflow: hidden;
 }
 
 .sub-manage-center {
@@ -19,8 +19,11 @@
 }
 
 .text-preview {
+  position: absolute;
+  background-color: black;
   color: white;
   align-self: end;
+  white-space: pre;
 }
 
 table {
