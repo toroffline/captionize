@@ -13,7 +13,6 @@
   display: flex;
   justify-content: center;
   background: black;
-  height: 100%;
   width: 50vw;
   padding-bottom: 1rem;
 }
@@ -32,4 +31,8 @@ table {
 
 tr.editing {
   background-color: wheat;
+}
+
+.ml-1 {
+  margin-left: 1rem;
 }

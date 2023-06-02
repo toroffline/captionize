@@ -48,11 +48,12 @@ function collectData(fileName) {
   for (let i = 0; i < chars.length; i++) {
     const char = chars[i];
     if (
-      (char === "\n" && chars[i - 1] === "\n")
+      char === "\n" &&
+      chars[i - 1] === "\n"
       // || (char === "\n" && chars[i - 2] === "\n")
     ) {
       const matched = timestampDisplay.match(timestampRegex);
-      console.log({ matched, contents, timestampDisplay});
+      console.log({ matched, contents, timestampDisplay });
       const timestamp = {
         from: {
           h: +matched[1],
@@ -101,32 +102,30 @@ function collectData(fileName) {
   return paragraphs;
 }
 
-function exportResultAsFile(paragraphs, fileName) {
+export function buildExportFileContent(paragraphs, speakers) {
+  if (!speakers) {
+    speakers = getSpeakers("caption.th_TH (3)");
+  }
+
   let result = "";
   for (let i = 0; i < paragraphs.length; i++) {
     const paragraph = paragraphs[i];
     result += `${i + 1}\n`;
     result += `${paragraph.timestampDisplay}\n`;
-    if (paragraph.content_1) {
-      if (paragraph.speaker_1) {
-        const speaker = patternSpeaker.replace("{name}", paragraph.speaker_1);
-        result += `${speaker} ${paragraph.content_1}\n`;
-      } else {
-        result += `${paragraph.content_1}\n`;
-      }
-    }
-    if (paragraph.content_2) {
-      if (paragraph.speaker_2 && paragraph.speaker_2 !== paragraph.speaker_1) {
-        const speaker = patternSpeaker.replace("{name}", paragraph.speaker_2);
-        result += `${speaker} ${paragraph.content_2}\n`;
-      } else {
-        result += `${paragraph.content_1}\n`;
-      }
+    for (let j = 0; j < paragraph.contents.length; j++) {
+      const content = paragraph.contents[j];
+      result += displaySpeaker(content.speaker, speakers, content.content);
+      result += "\n";
     }
 
     result += "\n";
   }
 
+  return result;
+}
+
+function exportResultAsFile(paragraphs, fileName) {
+  const fileContent = buildExportFileContent(paragraphs);
   const resultFileName = `${fileName}-result.txt`;
   try {
     fs.writeFileSync(resultFileName, result);

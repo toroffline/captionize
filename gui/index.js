@@ -54,7 +54,7 @@ function createSpeakersBtnGroup(
       "id",
       composeId("btn-row", paragraphIndex, contentIndex, i)
     );
-    btn.setAttribute("class", "btn btn-outline-primary");
+    btn.setAttribute("class", "btn btn-outline-info");
     btn.setAttribute("type", "button");
     btn.value = i;
     btn.textContent = s.name;
@@ -87,7 +87,7 @@ function createSpeakersBtnGroup(
   return div;
 }
 
-function createInputGroup(paragraphIndex, contentIndex, value) {
+function createInputGroup(paragraphIndex, contentIndex, content) {
   const div = document.createElement("div");
   div.setAttribute("class", "input-group mb-3");
   const span = document.createElement("span");
@@ -102,9 +102,14 @@ function createInputGroup(paragraphIndex, contentIndex, value) {
     composeId("input-content", paragraphIndex, contentIndex)
   );
   input.setAttribute("class", "form-control");
-  input.value = value;
+  input.value = content.content;
   div.appendChild(span);
   div.appendChild(input);
+
+  input.addEventListener("keyup", (e) => {
+    const value = e.currentTarget.value;
+    content.content = value;
+  });
 
   return div;
 }
@@ -125,6 +130,40 @@ function tableRowEvent(trEl, paragraph, speakers) {
   });
 }
 
+function buildContentSection(
+  paragraph,
+  speakers,
+  paragraphIndex,
+  contentIndex
+) {
+  const contentObj = paragraph.contents[contentIndex];
+  const contentGroupDiv = document.createElement("div");
+  contentGroupDiv.setAttribute("class", "pb-3");
+  const contentInputEl = createInputGroup(
+    paragraphIndex,
+    contentIndex,
+    contentObj
+  );
+  contentGroupDiv.appendChild(contentInputEl);
+  contentGroupDiv.appendChild(
+    createSpeakersBtnGroup(paragraphIndex, contentIndex, speakers, contentObj)
+  );
+  const removeBtn = document.createElement("btn");
+  removeBtn.setAttribute("type", "button");
+  removeBtn.setAttribute("class", "ml-1 btn btn-outline-danger");
+  removeBtn.textContent = "🗑️ Remove";
+  removeBtn.addEventListener("click", () => {
+    const removeIndex = Array.from(contentGroupDiv.parentNode.children).indexOf(
+      contentGroupDiv
+    );
+    paragraph.contents.splice(removeIndex, 1);
+    contentGroupDiv.parentNode.removeChild(contentGroupDiv);
+  });
+  contentGroupDiv.appendChild(removeBtn);
+
+  return contentGroupDiv;
+}
+
 function renderTable(paragraphs, speakers) {
   const tbody = document.getElementById("tableBody");
   for (
@@ -132,49 +171,60 @@ function renderTable(paragraphs, speakers) {
     paragraphIndex < paragraphs.length;
     paragraphIndex++
   ) {
-    const p = paragraphs[paragraphIndex];
+    const paragraph = paragraphs[paragraphIndex];
     const trEl = document.createElement("tr");
     trEl.setAttribute("id", composeId("paragraph-tr", paragraphIndex));
-    tableRowEvent(trEl, p, speakers);
+    tableRowEvent(trEl, paragraph, speakers);
     const tdEl = {
       index: document.createElement("td"),
       oldIndex: document.createElement("td"),
       timestamp: document.createElement("td"),
-      content1: document.createElement("td"),
-      content2: document.createElement("td"),
+      content: document.createElement("td"),
     };
     tdEl.index.textContent = paragraphIndex;
-    tdEl.oldIndex.textContent = p.oldIndex;
-    tdEl.timestamp.textContent = p.timestampDisplay.replaceAll("-->", "→");
+    tdEl.oldIndex.textContent = paragraph.oldIndex;
+    tdEl.timestamp.textContent = paragraph.timestampDisplay.replaceAll(
+      "-->",
+      "→"
+    );
     tdEl.index.setAttribute("id", `td-index-${paragraphIndex}`);
     tdEl.index.setAttribute("id", `td-old-index-${paragraphIndex}`);
     tdEl.index.setAttribute("id", `td-timestamp-${paragraphIndex}`);
 
     for (
       let contentIndex = 0;
-      contentIndex < p.contents.length;
+      contentIndex < paragraph.contents.length;
       contentIndex++
     ) {
-      const contentObj = p.contents[contentIndex];
-      let content = contentObj.content;
-      const contentGroupDiv = document.createElement("div");
-      contentGroupDiv.setAttribute("class", "pb-3");
-      const contentInputEl = createInputGroup(
-        paragraphIndex,
-        contentIndex,
-        content
+      tdEl.content.appendChild(
+        buildContentSection(paragraph, speakers, paragraphIndex, contentIndex)
       );
-      contentGroupDiv.appendChild(contentInputEl);
-      contentGroupDiv.appendChild(
-        createSpeakersBtnGroup(
-          paragraphIndex,
-          contentIndex,
-          speakers,
-          contentObj
-        )
-      );
-      tdEl.content1.appendChild(contentGroupDiv);
     }
+
+    const addBtn = document.createElement("btn");
+    addBtn.setAttribute("type", "button");
+    addBtn.setAttribute("class", "btn btn-outline-success");
+    addBtn.textContent = "➕ Add";
+    tdEl.content.appendChild(addBtn);
+
+    addBtn.addEventListener("click", (e) => {
+      paragraph.contents = [
+        ...paragraph.contents,
+        {
+          content: "",
+          speaker: null,
+        },
+      ];
+      tdEl.content.insertBefore(
+        buildContentSection(
+          paragraph,
+          speakers,
+          paragraphIndex,
+          paragraph.contents.length - 1
+        ),
+        tdEl.content.childNodes[tdEl.content.childNodes.length - 1]
+      );
+    });
 
     Object.keys(tdEl).forEach((k) => {
       trEl.appendChild(tdEl[k]);
@@ -207,8 +257,8 @@ function convertDurationToSeconds(h, m, s) {
 
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
-    height: "360",
-    width: "640",
+    height: "240",
+    width: "320",
     videoId: videoId,
     playerVars: {
       controls: 1,
@@ -230,7 +280,7 @@ function onPlayerReady(event) {
 
 function checkPlaybackTime() {
   const currentTime = player.getCurrentTime();
-  console.log("Current time:", currentTime);
+  // console.log("Current time:", currentTime);
 }
 
 function seekTo(timestamp) {
@@ -251,18 +301,56 @@ function loadYouTubePlayer() {
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }
 
+function getFilenameFromResponse(response) {
+  const contentDisposition = response.headers.get("Content-Disposition");
+  console.log({contentDisposition, headers: response.headers});
+  const filenameMatch =
+    contentDisposition &&
+    contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+  return filenameMatch ? decodeURIComponent(filenameMatch[1]) : "result.srt";
+}
+
+async function exportResult(paragraphs) {
+  await fetch("http://localhost:3000/api/export", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ data: paragraphs }),
+  })
+    .then((response) => {
+      const fileName = getFilenameFromResponse(response);
+      return response.blob().then((blob) => ({ fileName, blob }));
+    })
+    .then(({fileName, blob}) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch((error) => {
+      console.error("Error downloading file:", error);
+    });
+}
+
 async function main() {
-  const { paragraphs, speakers } = await fetch("http://localhost:3000/data")
+  const { paragraphs, speakers } = await fetch(
+    "http://localhost:3000/api/paragraph"
+  )
     .then((response) => response.json())
     .catch((error) => {
       console.error("Error fetching data:", error);
     });
   renderTable(paragraphs, speakers);
+
   const previewTextEl = document.getElementById("text-preview");
   previewTextEl.textContent = DEFAULT_PREVIEW_TEXT;
+
   const exportBtn = document.getElementById("btn-export");
-  exportBtn.addEventListener("click", (e) => {
-    console.log(paragraphs);
+  exportBtn.addEventListener("click", () => {
+    exportResult(paragraphs);
   });
 
   loadYouTubePlayer();
