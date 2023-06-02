@@ -8,6 +8,7 @@ import {
   buildExportFileContent,
   getParagraphs,
   getSpeakers,
+  saveResult,
 } from "../index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,6 +42,13 @@ app.get("/api/paragraph", (_req, res) => {
   const paragraphs = getParagraphs(fileName);
   const speakers = getSpeakers(fileName);
   res.send({ paragraphs, speakers });
+});
+
+app.post("/api/save", (req, res) => {
+  console.debug("req:", req.body.data.length);
+  const fileName = "caption.th_TH (3)";
+  saveResult(fileName, req.body.data);
+  res.send({success: true});
 });
 
 app.post("/api/export", (req, res) => {

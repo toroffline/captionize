@@ -257,8 +257,8 @@ function convertDurationToSeconds(h, m, s) {
 
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
-    height: "240",
-    width: "320",
+    height: "320",
+    width: "640",
     videoId: videoId,
     playerVars: {
       controls: 1,
@@ -303,11 +303,24 @@ function loadYouTubePlayer() {
 
 function getFilenameFromResponse(response) {
   const contentDisposition = response.headers.get("Content-Disposition");
-  console.log({contentDisposition, headers: response.headers});
   const filenameMatch =
     contentDisposition &&
     contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
   return filenameMatch ? decodeURIComponent(filenameMatch[1]) : "result.srt";
+}
+
+async function saveResult(paragraphs) {
+  await fetch("http://localhost:3000/api/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ data: paragraphs }),
+  })
+    .then((response) => console.log({response}))
+    .catch((error) => {
+      console.error("Error downloading file:", error);
+    });
 }
 
 async function exportResult(paragraphs) {
@@ -351,6 +364,11 @@ async function main() {
   const exportBtn = document.getElementById("btn-export");
   exportBtn.addEventListener("click", () => {
     exportResult(paragraphs);
+  });
+
+  const saveBtn = document.getElementById("btn-save");
+  saveBtn.addEventListener("click", () => {
+    saveResult(paragraphs); 
   });
 
   loadYouTubePlayer();

@@ -518,7 +518,7 @@ async function renderMainMenu(paragraphs, speakers, fileName) {
   }
 }
 
-function saveResult(fileName, paragraphs) {
+export function saveResult(fileName, paragraphs) {
   fs.writeFileSync(`${fileName}-built_obj.txt`, JSON.stringify(paragraphs));
 }
 
