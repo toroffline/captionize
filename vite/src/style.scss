@@ -1,0 +1,51 @@
+.preview {
+  background-color: grey;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sub-manage-center {
+  border: 10px solid black;
+  position: relative;
+  overflow: auto;
+  height: 400px;
+}
+
+.scene {
+  display: flex;
+  justify-content: center;
+  background: black;
+  width: 50vw;
+  padding-bottom: 1rem;
+}
+
+.text-preview {
+  position: absolute;
+  background-color: black;
+  color: white;
+  align-self: end;
+  white-space: pre;
+}
+
+table {
+  width: 100%;
+}
+
+tr.editing {
+  background-color: wheat;
+}
+
+.ml-1 {
+  margin-left: 1rem;
+}
+
+thead th {
+  vertical-align: middle;
+}
+
+thead.freeze {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
