@@ -1,13 +1,14 @@
 import { Fragment, h } from 'preact';
-import { useSubTitleManagementContext } from '../contexts/Subtitle';
+import { useSubTitleManagementContext } from '../contexts/subTitle';
 import { CommonUtil } from '../utils/common';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 export const SubManagement = () => {
   const { data } = useSubTitleManagementContext();
-  // const { paragraphs = [], speakers = [] } = data ?? {}
   const [paragraphs, setParagraphs] = useState<Paragraph[]>([]);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+
+  console.log('render parent');
 
   useEffect(() => {
     if (data && paragraphs.length === 0 && speakers.length === 0) {
@@ -23,35 +24,6 @@ export const SubManagement = () => {
       timestamp.s
     )},${f(timestamp.ms)}`;
   }
-
-  const onClickSpeakerBtn = useCallback(
-    (
-      paragraphIndex: number,
-      contentIndex: number,
-      si: number,
-      content: ParagraphContent
-    ) => {
-      const speakerId = content.speaker === si ? null : si;
-      console.log(paragraphIndex, contentIndex, si, speakerId);
-      setParagraphs((prev) => {
-        prev.map((p, pi) => {
-          if (pi === paragraphIndex) {
-            const contents = [...p.contents];
-            contents[contentIndex].speaker = speakerId;
-            const clone = JSON.parse(JSON.stringify(p));
-            clone.contents = contents;
-
-            return clone;
-          }
-
-          return p;
-        });
-
-        return prev;
-      });
-    },
-    []
-  );
 
   return (
     <div class="sub-manage-center text-center">
@@ -78,16 +50,11 @@ export const SubManagement = () => {
                 <td>{composeTimestamp(p.timestamp.from)}</td>
                 <td>{composeTimestamp(p.timestamp.to)}</td>
                 <td>
-                  {p.contents.map((c: ParagraphContent, ci) => (
-                    <TextManagement
-                      key={`key-TextManagement-paragraph-${pi}-oldIndex-${p.oldIndex}-content-${ci}`}
-                      paragraphIndex={pi}
-                      contentIndex={ci}
-                      content={c}
-                      speakers={speakers}
-                      onClickSpeakerBtn={onClickSpeakerBtn}
-                    />
-                  ))}
+                  <ContentsManagement
+                    paragraphIndex={pi}
+                    speakers={speakers}
+                    contents={p.contents}
+                  />
                 </td>
               </tr>
             );
@@ -98,20 +65,107 @@ export const SubManagement = () => {
   );
 };
 
+const ContentsManagement = (props: {
+  paragraphIndex: number;
+  contents: ParagraphContent[];
+  speakers: Speaker[];
+}) => {
+  const { paragraphIndex, contents: _contents, speakers } = props;
+  const { onRemoveContent, onAddContent, setActiveSpeaker, onInputText } =
+    useSubTitleManagementContext();
+  const [contents, setContents] = useState(_contents);
+  console.log(`render content management ${paragraphIndex}`);
+
+  useEffect(() => {
+    if (contents != _contents) {
+      setContents([..._contents]);
+    }
+  }, [_contents]);
+
+  function handleRemoveContent(contentIndex: number) {
+    onRemoveContent(paragraphIndex, contentIndex);
+    setContents((prev) => {
+      prev.splice(contentIndex, 1);
+      return [...prev];
+    });
+  }
+
+  function handleAddContent() {
+    setContents((prev) => {
+      const newContent: ParagraphContent = {
+        text: '',
+        speaker: null,
+      };
+      prev = [...prev, newContent];
+      return prev;
+    });
+    onAddContent(paragraphIndex);
+  }
+
+  function handleClickSpeakerBtn(contentIndex: number, speakerId: number) {
+    setActiveSpeaker(paragraphIndex, contentIndex, speakerId);
+    setContents((prev) => {
+      prev[contentIndex].speaker = speakerId;
+      return [...prev];
+    });
+  }
+
+  function handleInputText(contentIndex: number, text: string) {
+    setContents((prev) => {
+      prev[contentIndex].text = text;
+      return [...prev];
+    });
+    onInputText(paragraphIndex, contentIndex, text);
+  }
+
+  return (
+    <>
+      {contents.map((c, ci) => (
+        <TextManagement
+          key={`key-TextManagement-paragraph-${paragraphIndex}-content-${ci}`}
+          paragraphIndex={paragraphIndex}
+          contentIndex={ci}
+          content={c}
+          speakers={speakers}
+          onRemoveContent={() => handleRemoveContent(ci)}
+          handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(ci, si)}
+          handleInputText={(text: string) => handleInputText(ci, text)}
+        />
+      ))}
+      <button
+        key={`key-button-content-paragraph-${paragraphIndex}`}
+        type="button"
+        class="btn btn-outline-success"
+        onClick={handleAddContent}
+      >
+        ➕ Add
+      </button>
+    </>
+  );
+};
+
 const TextManagement = (props: {
   paragraphIndex: number;
   contentIndex: number;
   content: ParagraphContent;
   speakers: Speaker[];
-  onClickSpeakerBtn: (
-    pi: number,
-    ci: number,
-    si: number,
-    content: ParagraphContent
-  ) => void;
+  onRemoveContent: (paragraphIndex: number, contentIndex: number) => void;
+  handleClickSpeakerBtn: (speakerId: number) => void;
+  handleInputText: (text: string) => void;
 }) => {
-  const { paragraphIndex, contentIndex, content, speakers, onClickSpeakerBtn } =
-    props;
+  const {
+    paragraphIndex,
+    contentIndex,
+    content: _content,
+    speakers,
+    onRemoveContent,
+    handleClickSpeakerBtn,
+    handleInputText,
+  } = props;
+
+  console.log(`render text management ${paragraphIndex} ${contentIndex}`);
+
+  const content = useMemo(() => _content, [_content]);
 
   function getSpeakerName(speakers: Speaker[], speakerId: number | null) {
     return speakerId !== null &&
@@ -119,6 +173,10 @@ const TextManagement = (props: {
       speakers
       ? speakers[speakerId].name
       : '';
+  }
+
+  function handleClickRemoveContent() {
+    onRemoveContent(paragraphIndex, contentIndex);
   }
 
   return (
@@ -135,24 +193,26 @@ const TextManagement = (props: {
             key={`key-input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
             id={`input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
             class="form-control"
-            value={content.content}
+            value={content.text}
+            onChange={(e) => handleInputText(e.currentTarget.value)}
           />
         </div>
         <SpeakerBtnGroup
+          key={`key-speaker-btn-group-${paragraphIndex}-${contentIndex}`}
           paragraphIndex={paragraphIndex}
           contentIndex={contentIndex}
           speakers={speakers}
-          content={content}
-          onClickSpeakerBtn={onClickSpeakerBtn}
+          activeId={_content.speaker}
+          handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(si)}
         />
+        <button
+          type="button"
+          class="ml-1 btn btn-outline-danger"
+          onClick={() => handleClickRemoveContent()}
+        >
+          🗑️ Remove
+        </button>
       </div>
-      <button
-        key={`key-button-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
-        type="button"
-        class="btn btn-outline-success"
-      >
-        ➕ Add
-      </button>
     </Fragment>
   );
 };
@@ -160,17 +220,20 @@ const TextManagement = (props: {
 const SpeakerBtnGroup = (props: {
   paragraphIndex: number;
   contentIndex: number;
+  activeId: number | null;
   speakers: Speaker[];
-  content: ParagraphContent;
-  onClickSpeakerBtn: (
-    pi: number,
-    ci: number,
-    si: number,
-    content: ParagraphContent
-  ) => void;
+  handleClickSpeakerBtn: (speakerId: number) => void;
 }) => {
-  const { paragraphIndex, contentIndex, speakers, content, onClickSpeakerBtn } =
-    props;
+  const {
+    paragraphIndex,
+    contentIndex,
+    speakers,
+    activeId,
+    handleClickSpeakerBtn,
+  } = props;
+  const _activeId = useMemo(() => activeId, [activeId]);
+
+  console.log(`render speaker btn ${paragraphIndex} ${contentIndex}`);
 
   return (
     <>
@@ -179,22 +242,17 @@ const SpeakerBtnGroup = (props: {
           <button
             key={`key-btn-row-paragraph-${paragraphIndex}-content-${contentIndex}-speaker-${si}`}
             id={`btn-row-paragraph-${paragraphIndex}-content-${contentIndex}-speaker-${si}`}
-            class={`btn btn-outline-info${
-              content.speaker === si ? ' active' : ''
-            }`}
+            class={`btn btn-outline-info${_activeId === si ? ' active' : ''}`}
             type="button"
             value="0"
-            onClick={() =>
-              onClickSpeakerBtn(paragraphIndex, contentIndex, si, content)
-            }
+            onClick={() => {
+              handleClickSpeakerBtn(si);
+            }}
           >
             {s.name}
           </button>
         ))}
       </div>
-      <button type="button" class="ml-1 btn btn-outline-danger">
-        🗑️ Remove
-      </button>
     </>
   );
 };

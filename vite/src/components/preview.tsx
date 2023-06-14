@@ -1,17 +1,19 @@
-import { RefObject, h } from 'preact'
-import { useEffect, useMemo, useRef } from 'preact/hooks'
+import { h } from 'preact';
+import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
+import { useSubTitleManagementContext } from '../contexts/subTitle';
 
 interface Props {
-  textPreview?: string
+  textPreview?: string;
 }
 
 export const Preview = (props: Props) => {
-  const { textPreview } = props
-  const textDisplay = useMemo(() => textPreview || '...', [textPreview])
+  const { textPreview } = props;
+  const { exportData, onSave } = useSubTitleManagementContext();
+  const textDisplay = useMemo(() => textPreview || '...', [textPreview]);
   // YT.Player | null
-  const playerRef = useRef<any>(null)
+  const playerRef = useRef<any>(null);
 
-  const videoId = 'u0aWLBjBMgw'
+  const videoId = 'u0aWLBjBMgw';
 
   useEffect(() => {
     if (window.YT && window.YT.Player) {
@@ -19,39 +21,55 @@ export const Preview = (props: Props) => {
         height: '360',
         width: '640',
         videoId,
-      })
+      });
     }
-  }, [])
+  }, []);
 
   function convertDurationToSeconds(h: number, m: number, s: number) {
-    let seconds = 0
+    let seconds = 0;
     if (h) {
-      seconds += h * 3600
+      seconds += h * 3600;
     }
     if (m) {
-      seconds += m * 60
+      seconds += m * 60;
     }
     if (s) {
-      seconds += s
+      seconds += s;
     }
 
-    return seconds
+    return seconds;
+  }
+
+  function handleSave() {
+    onSave();
+  }
+
+  function handleExport() {
+    exportData();
   }
 
   return (
     <div class="preview sticky-top">
-      <button id="btn-save" class="btn btn-success">
+      <button
+        id="btn-save"
+        class="btn btn-success"
+        onClick={() => handleSave()}
+      >
         Save
       </button>
-      <button id="btn-export" class="btn btn-primary">
+      <button
+        id="btn-export"
+        class="btn btn-primary"
+        onClick={() => handleExport()}
+      >
         Export
       </button>
       <div class="scene">
         <div id="text-preview" class="text-preview">
           {textDisplay}
         </div>
-        <div id="player" ref={playerRef}></div>
+        {/* <div id="player" ref={playerRef}></div> */}
       </div>
     </div>
-  )
-}
+  );
+};

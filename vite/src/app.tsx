@@ -1,8 +1,8 @@
-import { h } from 'preact'
-import './style.scss'
-import { Preview } from './components/preview'
-import { SubManagement } from './components/subManagement'
-import { SubTitleManagementProvider } from './contexts/Subtitle'
+import { h } from 'preact';
+import './style.scss';
+import { Preview } from './components/preview';
+import { SubManagement } from './components/subManagement';
+import { SubTitleManagementProvider } from './contexts/subTitle';
 
 export const App = () => {
   return (
@@ -14,5 +14,5 @@ export const App = () => {
         </SubTitleManagementProvider>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,11 +1,11 @@
-import fs from "fs";
-import inquirer from "inquirer";
-import Table from "cli-table";
-import colors from "colors";
+import fs from 'fs';
+import inquirer from 'inquirer';
+import Table from 'cli-table';
+import colors from 'colors';
 
-const patternSpeaker = "[{name}]";
+const patternSpeaker = '[{name}]';
 const TABLE_CONFIG = {
-  head: ["index", "oldIndex", "timestamp", "content_1", "content_2"],
+  head: ['index', 'oldIndex', 'timestamp', 'content_1', 'content_2'],
   colWidths: [10, 10, 32, 50, 50],
 };
 const PAGINATION = {
@@ -36,20 +36,20 @@ function compareTimestamp(t1, t2) {
 }
 
 function collectData(fileName) {
-  const chars = fs.readFileSync(fileName, "utf-8");
+  const chars = fs.readFileSync(`./data/${fileName}`, 'utf-8');
   let paragraphs = [];
   let oldIndex = 1;
   let lineCount = 0;
-  let timestampDisplay = "";
+  let timestampDisplay = '';
   let contents = [];
-  let content = "";
+  let content = '';
   const timestampRegex = /(\d+):(\d+):(\d+),(\d+) --> (\d+):(\d+):(\d+),(\d+)/;
 
   for (let i = 0; i < chars.length; i++) {
     const char = chars[i];
     if (
-      char === "\n" &&
-      chars[i - 1] === "\n"
+      char === '\n' &&
+      chars[i - 1] === '\n'
       // || (char === "\n" && chars[i - 2] === "\n")
     ) {
       const matched = timestampDisplay.match(timestampRegex);
@@ -71,17 +71,17 @@ function collectData(fileName) {
       const paragraph = {
         oldIndex,
         timestamp,
-        timestampDisplay: timestampDisplay.replace("\r", ""),
+        timestampDisplay: timestampDisplay.replace('\r', ''),
         contents,
       };
       paragraphs.push(paragraph);
       oldIndex += 1;
       lineCount = 0;
-      timestampDisplay = "";
+      timestampDisplay = '';
       contents = [];
       continue;
     }
-    if (char !== "\n") {
+    if (char !== '\n') {
       if (lineCount == 1) {
         timestampDisplay += char;
       } else if (lineCount >= 2) {
@@ -90,10 +90,10 @@ function collectData(fileName) {
     } else {
       if (lineCount >= 2) {
         contents.push({
-          content: content.replace("\r", ""),
+          text: content.replace('\r', ''),
           speaker: null,
         });
-        content = "";
+        content = '';
       }
       lineCount += 1;
     }
@@ -104,10 +104,10 @@ function collectData(fileName) {
 
 export function buildExportFileContent(paragraphs, speakers) {
   if (!speakers) {
-    speakers = getSpeakers("caption.th_TH (3)");
+    speakers = getSpeakers('caption.th_TH (3)');
   }
 
-  let result = "";
+  let result = '';
   for (let i = 0; i < paragraphs.length; i++) {
     const paragraph = paragraphs[i];
     result += `${i + 1}\n`;
@@ -115,10 +115,10 @@ export function buildExportFileContent(paragraphs, speakers) {
     for (let j = 0; j < paragraph.contents.length; j++) {
       const content = paragraph.contents[j];
       result += displaySpeaker(content.speaker, speakers, content.content);
-      result += "\n";
+      result += '\n';
     }
 
-    result += "\n";
+    result += '\n';
   }
 
   return result;
@@ -128,35 +128,41 @@ function exportResultAsFile(paragraphs, fileName) {
   const fileContent = buildExportFileContent(paragraphs);
   const resultFileName = `${fileName}-result.txt`;
   try {
-    fs.writeFileSync(resultFileName, result);
-    logInfo(">> Successfully exported 🚀");
+    fs.writeFileSync(`./data/${resultFileName}`, result);
+    logInfo('>> Successfully exported 🚀');
   } catch (ex) {
     console.error(ex);
-    logInfo(">> Export failed 💀");
+    logInfo('>> Export failed 💀');
   }
 }
 
 export function getSpeakers(fileName) {
   let speakers = [];
   try {
-    const chars = fs.readFileSync(`${fileName}-speaker_obj.txt`, "utf-8");
+    const chars = fs.readFileSync(
+      `./data/${fileName}-speaker_obj.txt`,
+      'utf-8'
+    );
     speakers = JSON.parse(chars);
   } catch (ex) {
     try {
-      const chars = fs.readFileSync(`${fileName}-speaker.txt`, "utf-8");
-      let speaker = "";
+      const chars = fs.readFileSync(`./data/${fileName}-speaker.txt`, 'utf-8');
+      let speaker = '';
       for (let i = 0; i < chars.length; i++) {
         const char = chars[i];
-        if (char === "\n") {
+        if (char === '\n') {
           speakers.push({ name: speaker, count: 0 });
-          speaker = "";
+          speaker = '';
           continue;
-        } else if (char === "\r") {
+        } else if (char === '\r') {
           continue;
         }
         speaker += char;
       }
-      fs.writeFileSync(`${fileName}-speaker_obj.txt`, JSON.stringify(speakers));
+      fs.writeFileSync(
+        `./data/${fileName}-speaker_obj.txt`,
+        JSON.stringify(speakers)
+      );
     } catch (ex) {
       console.error(ex);
     }
@@ -167,7 +173,7 @@ export function getSpeakers(fileName) {
 
 function displaySpeaker(speaker, speakers, content) {
   return isTruthyExceptZero(speaker)
-    ? `${patternSpeaker.replace("{name}", speakers[speaker].name)} ${content}`
+    ? `${patternSpeaker.replace('{name}', speakers[speaker].name)} ${content}`
     : content;
 }
 
@@ -213,11 +219,11 @@ async function askWhoSpeaker(index, paragraphs, speakers) {
   let _TABLE_CONFIG = {
     ...TABLE_CONFIG,
     head: [
-      "index",
-      "oldIndex",
-      "timestamp",
-      colors.bgWhite("content_1"),
-      "content_2",
+      'index',
+      'oldIndex',
+      'timestamp',
+      colors.bgWhite('content_1'),
+      'content_2',
     ],
   };
   renderRangeTable(index, paragraphs, speakers, _TABLE_CONFIG);
@@ -225,27 +231,27 @@ async function askWhoSpeaker(index, paragraphs, speakers) {
   // const choices = speakers.map((s, si) => ({ value: si, name: `${s.name} (${s.count})` }));
   const choices = speakers.map((s, si) => ({ value: si, name: `${s.name}` }));
   choices.unshift({
-    name: "[blank]",
-    value: "",
+    name: '[blank]',
+    value: '',
   });
   choices.push({
-    name: "Exit",
-    value: "exit",
+    name: 'Exit',
+    value: 'exit',
   });
 
-  let speaker_1 = "",
-    speaker_2 = "";
+  let speaker_1 = '',
+    speaker_2 = '';
   speaker_1 = await inquirer
     .prompt([
       {
-        type: "rawlist",
-        name: "speaker_1",
-        message: "speaker of `content_1`",
+        type: 'rawlist',
+        name: 'speaker_1',
+        message: 'speaker of `content_1`',
         choices,
       },
     ])
     .then(({ speaker_1 }) => speaker_1);
-  if (speaker_1 === "exit") {
+  if (speaker_1 === 'exit') {
     return {
       speaker_1,
       speaker_2,
@@ -259,11 +265,11 @@ async function askWhoSpeaker(index, paragraphs, speakers) {
     _TABLE_CONFIG = {
       ..._TABLE_CONFIG,
       head: [
-        "index",
-        "oldIndex",
-        "timestamp",
-        "content_1",
-        colors.bgWhite("content_2"),
+        'index',
+        'oldIndex',
+        'timestamp',
+        'content_1',
+        colors.bgWhite('content_2'),
       ],
     };
     console.clear();
@@ -272,9 +278,9 @@ async function askWhoSpeaker(index, paragraphs, speakers) {
     speaker_2 = await inquirer
       .prompt([
         {
-          type: "rawlist",
-          name: "speaker_2",
-          message: "speaker of `content_2`",
+          type: 'rawlist',
+          name: 'speaker_2',
+          message: 'speaker of `content_2`',
           choices,
         },
       ])
@@ -302,11 +308,11 @@ function isTruthyExceptZero(value) {
 
 async function renderTable(paragraphs, speakers) {
   const _choices = {
-    next: "next",
-    back: "back",
-    jumpToIndex: "jumpToIndex",
-    jumpToLatestUntagged: "jumpToLatestUntagged",
-    exit: "exit",
+    next: 'next',
+    back: 'back',
+    jumpToIndex: 'jumpToIndex',
+    jumpToLatestUntagged: 'jumpToLatestUntagged',
+    exit: 'exit',
   };
   let page = 1;
   let pageSize = PAGINATION.pageSize;
@@ -314,27 +320,27 @@ async function renderTable(paragraphs, speakers) {
     const choices = [
       {
         value: _choices.jumpToLatestUntagged,
-        name: "Jump to latest untag",
+        name: 'Jump to latest untag',
       },
       {
         value: _choices.jumpToIndex,
-        name: "Jump to index",
+        name: 'Jump to index',
       },
       {
         value: _choices.exit,
-        name: "Exit",
+        name: 'Exit',
       },
     ];
     if (page - 1 > 0) {
       choices.unshift({
         value: _choices.back,
-        name: "Back",
+        name: 'Back',
       });
     }
     if (page * pageSize < paragraphs.length) {
       choices.unshift({
         value: _choices.next,
-        name: "Next",
+        name: 'Next',
       });
     }
     console.clear();
@@ -356,8 +362,8 @@ async function renderTable(paragraphs, speakers) {
     const choice = await inquirer
       .prompt([
         {
-          type: "rawlist",
-          name: "choice",
+          type: 'rawlist',
+          name: 'choice',
           message: ``,
           choices,
         },
@@ -374,9 +380,9 @@ async function renderTable(paragraphs, speakers) {
       const index = await inquirer
         .prompt([
           {
-            type: "input",
-            name: "index",
-            message: "Input index: ",
+            type: 'input',
+            name: 'index',
+            message: 'Input index: ',
           },
         ])
         .then(({ index }) => +index);
@@ -394,7 +400,10 @@ async function renderTable(paragraphs, speakers) {
 }
 
 function saveSpeakers(speakers, fileName) {
-  fs.writeFileSync(`${fileName}-speaker_obj.txt`, JSON.stringify(speakers));
+  fs.writeFileSync(
+    `./data/${fileName}-speaker_obj.txt`,
+    JSON.stringify(speakers)
+  );
   return speakers;
 }
 
@@ -410,7 +419,7 @@ async function tagFromLatestUntagged(paragraphs, speakers, fileName) {
       paragraphs,
       speakers
     );
-    if (speaker_1 === "exit" || speaker_2 === "exit") {
+    if (speaker_1 === 'exit' || speaker_2 === 'exit') {
       break;
     }
     p.isTagComplete = true;
@@ -434,9 +443,9 @@ async function tagFromIndex(paragraphs, speakers, fileName) {
   const index = await inquirer
     .prompt([
       {
-        type: "input",
-        name: "index",
-        message: "Input index: ",
+        type: 'input',
+        name: 'index',
+        message: 'Input index: ',
       },
     ])
     .then(({ index }) => +index);
@@ -446,7 +455,7 @@ async function tagFromIndex(paragraphs, speakers, fileName) {
     paragraphs,
     speakers
   );
-  if (speaker_1 !== "exit" && speaker_2 !== "exit") {
+  if (speaker_1 !== 'exit' && speaker_2 !== 'exit') {
     if (isTruthyExceptZero(speaker_1)) {
       speakers[speaker_1].count += 1;
       p.speaker_1 = speaker_1;
@@ -464,42 +473,42 @@ async function tagFromIndex(paragraphs, speakers, fileName) {
 
 async function renderMainMenu(paragraphs, speakers, fileName) {
   const _choices = {
-    printAllParagraph: "printAllParagraph",
-    tagFromLatestUntagged: "tagFromLatestUntagged",
-    tagFromStart: "tagFromStart",
-    export: "export",
-    edit: "edit",
-    exit: "exit",
+    printAllParagraph: 'printAllParagraph',
+    tagFromLatestUntagged: 'tagFromLatestUntagged',
+    tagFromStart: 'tagFromStart',
+    export: 'export',
+    edit: 'edit',
+    exit: 'exit',
   };
   const choices = [
     {
       value: _choices.printAllParagraph,
-      name: "Print result 📊",
+      name: 'Print result 📊',
     },
     {
       value: _choices.tagFromLatestUntagged,
-      name: "Tag from latest untag ⚒️",
+      name: 'Tag from latest untag ⚒️',
     },
     {
       value: _choices.edit,
-      name: "Edit 📝",
+      name: 'Edit 📝',
     },
     {
       value: _choices.export,
-      name: "Export 🖨️",
+      name: 'Export 🖨️',
     },
     {
       value: _choices.exit,
-      name: "Exit 🙋‍♂️",
+      name: 'Exit 🙋‍♂️',
     },
   ];
   while (1) {
     const choice = await inquirer
       .prompt([
         {
-          type: "rawlist",
-          name: "choice",
-          message: "Main menu",
+          type: 'rawlist',
+          name: 'choice',
+          message: 'Main menu',
           choices,
         },
       ])
@@ -519,19 +528,22 @@ async function renderMainMenu(paragraphs, speakers, fileName) {
 }
 
 export function saveResult(fileName, paragraphs) {
-  fs.writeFileSync(`${fileName}-built_obj.txt`, JSON.stringify(paragraphs));
+  fs.writeFileSync(
+    `./data/${fileName}-built_obj.txt`,
+    JSON.stringify(paragraphs)
+  );
 }
 
 function getLatestResult(fileName) {
   try {
     const result = JSON.parse(
-      fs.readFileSync(`${fileName}-built_obj.txt`, "utf-8")
+      fs.readFileSync(`./data/${fileName}-built_obj.txt`, 'utf-8')
     );
 
-    logInfo(">> Latest result existed ✍️");
+    logInfo('>> Latest result existed ✍️');
     return result;
   } catch (ex) {
-    logInfo(">> No latest result");
+    logInfo('>> No latest result');
     return false;
   }
 }
@@ -543,9 +555,9 @@ function logInfo(text) {
 export function getParagraphs(fileName) {
   let paragraphs = getLatestResult(fileName);
   if (!paragraphs) {
-    logInfo(">> Generating files... ");
+    logInfo('>> Generating files... ');
     paragraphs = collectData(`${fileName}.srt`);
-    logInfo(">> Generated... ");
+    logInfo('>> Generated... ');
     paragraphs.sort((a, b) =>
       compareTimestamp(b.timestamp.from, a.timestamp.from)
     );
@@ -556,7 +568,7 @@ export function getParagraphs(fileName) {
 }
 
 function main() {
-  const fileName = "caption.th_TH (3)";
+  const fileName = 'caption.th_TH (3)';
   const paragraphs = getParagraphs(fileName);
   // const speakers = getSpeakers(fileName);
   // renderMainMenu(paragraphs, speakers, fileName);
