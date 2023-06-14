@@ -68,7 +68,7 @@ export const Preview = (props: Props) => {
         <div id="text-preview" class="text-preview">
           {textDisplay}
         </div>
-        {/* <div id="player" ref={playerRef}></div> */}
+        <div id="player" ref={playerRef}></div>
       </div>
     </div>
   );
