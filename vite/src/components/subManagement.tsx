@@ -8,8 +8,6 @@ export const SubManagement = () => {
   const [paragraphs, setParagraphs] = useState<Paragraph[]>([]);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
 
-  console.log('render parent');
-
   useEffect(() => {
     if (data && paragraphs.length === 0 && speakers.length === 0) {
       setParagraphs(data.paragraphs);
@@ -26,41 +24,28 @@ export const SubManagement = () => {
   }
 
   return (
-    <div class="sub-manage-center text-center">
-      <table id="table" class="table table-hover table-bordered">
-        <thead class="freeze">
-          <tr>
-            <th rowSpan={2}>index</th>
-            <th colSpan={2} class="col-timestamp">
-              duration
-            </th>
-            <th rowSpan={2}>text</th>
-            <th rowSpan={2}>translation</th>
-          </tr>
-          <tr>
-            <th>from</th>
-            <th>to</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          {paragraphs.map((p: Paragraph, pi: number) => {
-            return (
-              <tr key={`key-tr-paragraph-${pi}-oldIndex-${p.oldIndex}`}>
-                <td>{pi}</td>
-                <td>{composeTimestamp(p.timestamp.from)}</td>
-                <td>{composeTimestamp(p.timestamp.to)}</td>
-                <td>
-                  <ContentsManagement
-                    paragraphIndex={pi}
-                    speakers={speakers}
-                    contents={p.contents}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div class="sub-manage-center">
+      {paragraphs.map((p: Paragraph, pi: number) => {
+        return (
+          <>
+            <div class="paragraph-container">
+              <div class="timeline">
+                <div class="small text-muted">
+                  {composeTimestamp(p.timestamp.from)}
+                </div>
+                <div class="small text-muted">
+                  {composeTimestamp(p.timestamp.to)}
+                </div>
+              </div>
+              <ContentsManagement
+                paragraphIndex={pi}
+                speakers={speakers}
+                contents={p.contents}
+              />
+            </div>
+          </>
+        );
+      })}
     </div>
   );
 };
@@ -74,7 +59,6 @@ const ContentsManagement = (props: {
   const { onRemoveContent, onAddContent, setActiveSpeaker, onInputText } =
     useSubTitleManagementContext();
   const [contents, setContents] = useState(_contents);
-  console.log(`render content management ${paragraphIndex}`);
 
   useEffect(() => {
     if (contents != _contents) {
@@ -119,7 +103,7 @@ const ContentsManagement = (props: {
   }
 
   return (
-    <>
+    <div class="content mb-4">
       {contents.map((c, ci) => (
         <TextManagement
           key={`key-TextManagement-paragraph-${paragraphIndex}-content-${ci}`}
@@ -140,7 +124,7 @@ const ContentsManagement = (props: {
       >
         ➕ Add
       </button>
-    </>
+    </div>
   );
 };
 
@@ -162,8 +146,6 @@ const TextManagement = (props: {
     handleClickSpeakerBtn,
     handleInputText,
   } = props;
-
-  console.log(`render text management ${paragraphIndex} ${contentIndex}`);
 
   const content = useMemo(() => _content, [_content]);
 
@@ -206,11 +188,12 @@ const TextManagement = (props: {
           handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(si)}
         />
         <button
+          class="btn btn-outline-secondary ml-3"
           type="button"
-          class="ml-1 btn btn-outline-danger"
+          id="button-addon2"
           onClick={() => handleClickRemoveContent()}
         >
-          🗑️ Remove
+          ✖️
         </button>
       </div>
     </Fragment>
@@ -232,8 +215,6 @@ const SpeakerBtnGroup = (props: {
     handleClickSpeakerBtn,
   } = props;
   const _activeId = useMemo(() => activeId, [activeId]);
-
-  console.log(`render speaker btn ${paragraphIndex} ${contentIndex}`);
 
   return (
     <>

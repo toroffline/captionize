@@ -5,6 +5,7 @@ import axios, { AxiosResponse } from 'axios';
 
 interface ContextValue {
   data?: ParagraphResponse;
+  videoId?: string;
   setActiveSpeaker: (
     paragraphIndex: number,
     contentIndex: number,
@@ -23,6 +24,7 @@ interface ContextValue {
 
 const initialValue: ContextValue = {
   data: undefined,
+  videoId: undefined,
   setActiveSpeaker: () => {},
   exportData: () => {},
   onSave: () => {},
@@ -38,6 +40,7 @@ const SubTitleManagementProvider = (props: {
   children?: ComponentChildren;
 }) => {
   const [data, setData] = useState<ParagraphResponse | undefined>();
+  const [videoId] = useState<string | undefined>('u0aWLBjBMgw');
 
   function setActiveSpeaker(
     paragraphIndex: number,
@@ -133,6 +136,7 @@ const SubTitleManagementProvider = (props: {
     <Context.Provider
       value={{
         data,
+        videoId,
         setActiveSpeaker,
         exportData,
         onSave,

@@ -7,6 +7,21 @@ export namespace CommonUtil {
     return value || value === 0;
   }
 
+  export function convertDurationToSeconds(h: number, m: number, s: number) {
+    let seconds = 0;
+    if (h) {
+      seconds += h * 3600;
+    }
+    if (m) {
+      seconds += m * 60;
+    }
+    if (s) {
+      seconds += s;
+    }
+
+    return seconds;
+  }
+
   export function deepCompare(obj1: any, obj2: any) {
     if (obj1 === obj2) {
       return true;
@@ -34,5 +49,25 @@ export namespace CommonUtil {
     }
 
     return true;
+  }
+
+  export function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+    return new Promise<ArrayBuffer>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert Blob to ArrayBuffer.'));
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read Blob as ArrayBuffer.'));
+      };
+
+      reader.readAsArrayBuffer(blob);
+    });
   }
 }

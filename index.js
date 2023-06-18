@@ -36,7 +36,7 @@ function compareTimestamp(t1, t2) {
 }
 
 function collectData(fileName) {
-  const chars = fs.readFileSync(`./data/${fileName}`, 'utf-8');
+  const chars = fs.readFileSync(`./data/${fileName}/${fileName}`, 'utf-8');
   let paragraphs = [];
   let oldIndex = 1;
   let lineCount = 0;
@@ -128,7 +128,7 @@ function exportResultAsFile(paragraphs, fileName) {
   const fileContent = buildExportFileContent(paragraphs);
   const resultFileName = `${fileName}-result.txt`;
   try {
-    fs.writeFileSync(`./data/${resultFileName}`, result);
+    fs.writeFileSync(`./data/${fileName}/${resultFileName}`, result);
     logInfo('>> Successfully exported 🚀');
   } catch (ex) {
     console.error(ex);
@@ -140,13 +140,16 @@ export function getSpeakers(fileName) {
   let speakers = [];
   try {
     const chars = fs.readFileSync(
-      `./data/${fileName}-speaker_obj.txt`,
+      `./data/${fileName}/${fileName}-speaker_obj.txt`,
       'utf-8'
     );
     speakers = JSON.parse(chars);
   } catch (ex) {
     try {
-      const chars = fs.readFileSync(`./data/${fileName}-speaker.txt`, 'utf-8');
+      const chars = fs.readFileSync(
+        `./data/${fileName}/${fileName}-speaker.txt`,
+        'utf-8'
+      );
       let speaker = '';
       for (let i = 0; i < chars.length; i++) {
         const char = chars[i];
@@ -160,7 +163,7 @@ export function getSpeakers(fileName) {
         speaker += char;
       }
       fs.writeFileSync(
-        `./data/${fileName}-speaker_obj.txt`,
+        `./data/${fileName}/${fileName}-speaker_obj.txt`,
         JSON.stringify(speakers)
       );
     } catch (ex) {
@@ -401,7 +404,7 @@ async function renderTable(paragraphs, speakers) {
 
 function saveSpeakers(speakers, fileName) {
   fs.writeFileSync(
-    `./data/${fileName}-speaker_obj.txt`,
+    `./data/${fileName}/${fileName}-speaker_obj.txt`,
     JSON.stringify(speakers)
   );
   return speakers;
@@ -529,7 +532,7 @@ async function renderMainMenu(paragraphs, speakers, fileName) {
 
 export function saveResult(fileName, paragraphs) {
   fs.writeFileSync(
-    `./data/${fileName}-built_obj.txt`,
+    `./data/${fileName}/${fileName}-built_obj.txt`,
     JSON.stringify(paragraphs)
   );
 }
@@ -537,7 +540,7 @@ export function saveResult(fileName, paragraphs) {
 function getLatestResult(fileName) {
   try {
     const result = JSON.parse(
-      fs.readFileSync(`./data/${fileName}-built_obj.txt`, 'utf-8')
+      fs.readFileSync(`./data/${fileName}/${fileName}-built_obj.txt`, 'utf-8')
     );
 
     logInfo('>> Latest result existed ✍️');

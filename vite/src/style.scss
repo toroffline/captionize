@@ -1,22 +1,23 @@
-.preview {
-  background-color: grey;
+.preview-center {
   display: flex;
-  justify-content: center;
-  overflow: hidden;
+
+  .sub-manage-center {
+    padding: 1rem 0 2rem 1rem;
+    flex: 1;
+  }
+
+  .preview {
+    flex: 0 0 47%;
+  }
 }
 
-.sub-manage-center {
-  border: 10px solid black;
-  position: relative;
-  overflow: auto;
-  height: 400px;
+.preview {
+  background-color: white;
 }
 
 .scene {
-  display: flex;
-  justify-content: center;
+  padding: 1rem;
   background: black;
-  width: 50vw;
   padding-bottom: 1rem;
 }
 
@@ -40,6 +41,10 @@ tr.editing {
   margin-left: 1rem;
 }
 
+.ml-3 {
+  margin-left: 3rem;
+}
+
 thead th {
   vertical-align: middle;
 }
@@ -48,4 +53,47 @@ thead.freeze {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.wave-form {
+  width: 100%;
+}
+
+.mr-1 {
+  margin-right: 1rem;
+}
+
+.mr-2 {
+  margin-right: 2rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.translation-container {
+  display: flex;
+
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+}
+
+.paragraph-container {
+  display: flex;
+
+  .timeline {
+    flex: 0 0 20%;
+  }
+
+  .content {
+    flex: 1;
+  }
+}
+
+.footer {
+  background-color: rgba(245, 245, 245, 0.8);
+  text-align: center;
+  position: sticky;
+  bottom: 0;
 }
