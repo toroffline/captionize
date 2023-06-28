@@ -7,41 +7,13 @@ import {
   useSubTitleManagementContext,
 } from './contexts/subTitle';
 import { Wave } from './components/wave';
+import { TopBar } from './components/topBar';
 
 export const App = () => {
-  const { exportData, onSave } = useSubTitleManagementContext();
-
-  function handleSave() {
-    onSave();
-  }
-
-  function handleExport() {
-    exportData();
-  }
   return (
     <>
       <SubTitleManagementProvider>
-        <div class="translation-container">
-          <span>
-            <strong class="mr-1">Thai to Eng</strong>
-            <small>switch</small>
-          </span>
-          <span>
-            <button
-              class="btn btn-outline-secondary"
-              onClick={() => handleSave()}
-            >
-              Save
-            </button>
-            <button
-              class="btn btn-outline-secondary"
-              onClick={() => handleExport()}
-            >
-              Export
-            </button>
-          </span>
-        </div>
-        <hr />
+        <TopBar />
         <div class="preview-center">
           <Preview />
           <SubManagement />

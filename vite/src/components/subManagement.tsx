@@ -29,6 +29,7 @@ export const SubManagement = () => {
         return (
           <>
             <div class="paragraph-container">
+              <div class="small text-muted mr-1">{pi + 1}</div>
               <div class="timeline">
                 <div class="small text-muted">
                   {composeTimestamp(p.timestamp.from)}
@@ -43,6 +44,7 @@ export const SubManagement = () => {
                 contents={p.contents}
               />
             </div>
+            <hr class="mt-0" />
           </>
         );
       })}
@@ -56,9 +58,14 @@ const ContentsManagement = (props: {
   speakers: Speaker[];
 }) => {
   const { paragraphIndex, contents: _contents, speakers } = props;
-  const { onRemoveContent, onAddContent, setActiveSpeaker, onInputText } =
-    useSubTitleManagementContext();
-  const [contents, setContents] = useState(_contents);
+  const {
+    toggleInsertSpeaker,
+    onRemoveContent,
+    onAddContent,
+    setActiveSpeaker,
+    onInputText,
+  } = useSubTitleManagementContext();
+  const [contents, setContents] = useState([..._contents]);
 
   useEffect(() => {
     if (contents != _contents) {
@@ -87,9 +94,13 @@ const ContentsManagement = (props: {
   }
 
   function handleClickSpeakerBtn(contentIndex: number, speakerId: number) {
-    setActiveSpeaker(paragraphIndex, contentIndex, speakerId);
+    let _speakerId: number | null = speakerId;
+    if (contents[contentIndex].speaker === speakerId) {
+      _speakerId = null;
+    }
+    setActiveSpeaker(paragraphIndex, contentIndex, _speakerId);
     setContents((prev) => {
-      prev[contentIndex].speaker = speakerId;
+      prev[contentIndex].speaker = _speakerId;
       return [...prev];
     });
   }
@@ -114,6 +125,7 @@ const ContentsManagement = (props: {
           onRemoveContent={() => handleRemoveContent(ci)}
           handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(ci, si)}
           handleInputText={(text: string) => handleInputText(ci, text)}
+          toggleInsertSpeaker={toggleInsertSpeaker}
         />
       ))}
       <button
@@ -133,6 +145,7 @@ const TextManagement = (props: {
   contentIndex: number;
   content: ParagraphContent;
   speakers: Speaker[];
+  toggleInsertSpeaker: boolean;
   onRemoveContent: (paragraphIndex: number, contentIndex: number) => void;
   handleClickSpeakerBtn: (speakerId: number) => void;
   handleInputText: (text: string) => void;
@@ -142,6 +155,7 @@ const TextManagement = (props: {
     contentIndex,
     content: _content,
     speakers,
+    toggleInsertSpeaker,
     onRemoveContent,
     handleClickSpeakerBtn,
     handleInputText,
@@ -163,22 +177,22 @@ const TextManagement = (props: {
 
   return (
     <Fragment key={`key-Fragment-${paragraphIndex}-${contentIndex}`}>
-      <div class="pb-3">
-        <div class="input-group mb-3">
-          <span
-            class="input-group-text"
-            id={`text-speaker-paragraph-${paragraphIndex}`}
-          >
-            {getSpeakerName(speakers, content.speaker)}
-          </span>
-          <input
-            key={`key-input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
-            id={`input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
-            class="form-control"
-            value={content.text}
-            onChange={(e) => handleInputText(e.currentTarget.value)}
-          />
-        </div>
+      <div class="input-group mb-3">
+        <span
+          class="input-group-text"
+          id={`text-speaker-paragraph-${paragraphIndex}`}
+        >
+          {getSpeakerName(speakers, content.speaker)}
+        </span>
+        <input
+          key={`key-input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
+          id={`input-content-paragraph-${paragraphIndex}-content-${contentIndex}`}
+          class="form-control"
+          value={content.text}
+          onChange={(e) => handleInputText(e.currentTarget.value)}
+        />
+      </div>
+      <span class={`${toggleInsertSpeaker ? '' : 'd-none'} pb-3`}>
         <SpeakerBtnGroup
           key={`key-speaker-btn-group-${paragraphIndex}-${contentIndex}`}
           paragraphIndex={paragraphIndex}
@@ -187,15 +201,16 @@ const TextManagement = (props: {
           activeId={_content.speaker}
           handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(si)}
         />
-        <button
-          class="btn btn-outline-secondary ml-3"
-          type="button"
-          id="button-addon2"
-          onClick={() => handleClickRemoveContent()}
-        >
-          ✖️
-        </button>
-      </div>
+      </span>
+      <button
+        class={`btn btn-outline-secondary ml-3${
+          toggleInsertSpeaker ? '' : ' d-none'
+        }`}
+        type="button"
+        onClick={() => handleClickRemoveContent()}
+      >
+        ✖️
+      </button>
     </Fragment>
   );
 };

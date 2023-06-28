@@ -6,10 +6,12 @@ import axios, { AxiosResponse } from 'axios';
 interface ContextValue {
   data?: ParagraphResponse;
   videoId?: string;
+  toggleInsertSpeaker: boolean;
+  setToggleInsertSpeaker: (value: boolean) => void;
   setActiveSpeaker: (
     paragraphIndex: number,
     contentIndex: number,
-    speakerId: number
+    speakerId: number | null
   ) => void;
   exportData: () => void;
   onSave: () => void;
@@ -25,6 +27,8 @@ interface ContextValue {
 const initialValue: ContextValue = {
   data: undefined,
   videoId: undefined,
+  toggleInsertSpeaker: true,
+  setToggleInsertSpeaker: () => {},
   setActiveSpeaker: () => {},
   exportData: () => {},
   onSave: () => {},
@@ -41,14 +45,14 @@ const SubTitleManagementProvider = (props: {
 }) => {
   const [data, setData] = useState<ParagraphResponse | undefined>();
   const [videoId] = useState<string | undefined>('u0aWLBjBMgw');
+  const [toggleInsertSpeaker, setToggleInsertSpeaker] = useState<boolean>(true);
 
   function setActiveSpeaker(
     paragraphIndex: number,
     contentIndex: number,
-    speakerId: number
+    speakerId: number | null
   ) {
     if (data) {
-      console.log({ paragraphIndex, contentIndex, speakerId });
       setData((prev) => {
         if (prev) {
           prev.paragraphs[paragraphIndex].contents[contentIndex].speaker =
@@ -137,6 +141,8 @@ const SubTitleManagementProvider = (props: {
       value={{
         data,
         videoId,
+        toggleInsertSpeaker,
+        setToggleInsertSpeaker,
         setActiveSpeaker,
         exportData,
         onSave,

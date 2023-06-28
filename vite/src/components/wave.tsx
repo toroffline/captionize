@@ -20,6 +20,7 @@ export const Wave = () => {
         barRadius: 1,
         autoCenter: true,
         responsive: true,
+        height: 50,
       });
 
       waveSurfer.on('ready', () => {
