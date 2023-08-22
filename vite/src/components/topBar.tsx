@@ -30,7 +30,8 @@ export const TopBar = () => {
               onClick={() => setToggleInsertSpeaker(!toggleInsertSpeaker)}
             />
             <label class="form-check-label" for="flexSwitchCheckDefault">
-              Insert speaker
+              {/* Insert speaker */}
+              Edit mode
             </label>
           </span>
           <button

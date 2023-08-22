@@ -84,6 +84,10 @@ thead.freeze {
 .paragraph-container {
   display: flex;
 
+  &.focus-paragraph {
+    background-color: #f2f2f2;
+  }
+
   .timeline {
     flex: 0 0 20%;
   }

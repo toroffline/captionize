@@ -2,10 +2,7 @@ import { h } from 'preact';
 import './style.scss';
 import { Preview } from './components/preview';
 import { SubManagement } from './components/subManagement';
-import {
-  SubTitleManagementProvider,
-  useSubTitleManagementContext,
-} from './contexts/subTitle';
+import { SubTitleManagementProvider } from './contexts/subTitle';
 import { Wave } from './components/wave';
 import { TopBar } from './components/topBar';
 
