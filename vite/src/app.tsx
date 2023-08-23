@@ -7,6 +7,7 @@ import { Wave } from './components/wave';
 import { TopBar } from './components/topBar';
 
 export const App = () => {
+  console.log('[App] render');
   return (
     <>
       <SubTitleManagementProvider>

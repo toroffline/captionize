@@ -2,7 +2,7 @@ import { h } from 'preact';
 import { useSubTitleManagementContext } from '../contexts/subTitle';
 
 export const TopBar = () => {
-  const { toggleInsertSpeaker, setToggleInsertSpeaker, exportData, onSave } =
+  const { setToggleInsertSpeaker, exportData, onSave } =
     useSubTitleManagementContext();
 
   function handleSave() {
@@ -26,8 +26,8 @@ export const TopBar = () => {
               class="form-check-input"
               type="checkbox"
               role="switch"
-              checked={toggleInsertSpeaker}
-              onClick={() => setToggleInsertSpeaker(!toggleInsertSpeaker)}
+              // checked={toggleInsertSpeaker}
+              onClick={() => setToggleInsertSpeaker()}
             />
             <label class="form-check-label" for="flexSwitchCheckDefault">
               {/* Insert speaker */}

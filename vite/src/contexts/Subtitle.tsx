@@ -7,7 +7,7 @@ interface ContextValue {
   data?: ParagraphResponse;
   videoId?: string;
   toggleInsertSpeaker: boolean;
-  setToggleInsertSpeaker: (value: boolean) => void;
+  setToggleInsertSpeaker: () => void;
   setActiveSpeaker: (
     paragraphIndex: number,
     contentIndex: number,
@@ -45,7 +45,8 @@ const SubTitleManagementProvider = (props: {
 }) => {
   const [data, setData] = useState<ParagraphResponse | undefined>();
   const [videoId] = useState<string | undefined>('u0aWLBjBMgw');
-  const [toggleInsertSpeaker, setToggleInsertSpeaker] = useState<boolean>(true);
+  const [toggleInsertSpeaker, setDummyToggleInsertSpeaker] =
+    useState<boolean>(true);
 
   function setActiveSpeaker(
     paragraphIndex: number,
@@ -130,6 +131,10 @@ const SubTitleManagementProvider = (props: {
       }
       return prev;
     });
+  }
+
+  function setToggleInsertSpeaker() {
+    setDummyToggleInsertSpeaker(!toggleInsertSpeaker);
   }
 
   useEffect(() => {

@@ -18,6 +18,13 @@ export const Preview = (props: Props) => {
         height: '360',
         width: '640',
         videoId,
+        playerVars: {
+          controls: 0,
+          modestbranding: 1,
+          disablekb: 1,
+          showinfo: 0,
+          autohide: 1,
+        },
       });
     }
   }, []);

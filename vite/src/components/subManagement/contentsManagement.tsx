@@ -9,13 +9,8 @@ export const ContentsManagement = (props: {
   speakers: Speaker[];
 }) => {
   const { paragraphIndex, contents: _contents, speakers } = props;
-  const {
-    toggleInsertSpeaker,
-    onRemoveContent,
-    onAddContent,
-    setActiveSpeaker,
-    onInputText,
-  } = useSubTitleManagementContext();
+  const { onRemoveContent, onAddContent, setActiveSpeaker, onInputText } =
+    useSubTitleManagementContext();
   const [contents, setContents] = useState([..._contents]);
 
   useEffect(() => {
@@ -76,7 +71,6 @@ export const ContentsManagement = (props: {
           onRemoveContent={() => handleRemoveContent(ci)}
           handleClickSpeakerBtn={(si: number) => handleClickSpeakerBtn(ci, si)}
           handleInputText={(text: string) => handleInputText(ci, text)}
-          toggleInsertSpeaker={toggleInsertSpeaker}
         />
       ))}
       <button

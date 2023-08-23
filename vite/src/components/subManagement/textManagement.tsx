@@ -8,7 +8,6 @@ export const TextManagement = (props: {
   contentIndex: number;
   content: ParagraphContent;
   speakers: Speaker[];
-  toggleInsertSpeaker: boolean;
   onRemoveContent: (paragraphIndex: number, contentIndex: number) => void;
   handleClickSpeakerBtn: (speakerId: number) => void;
   handleInputText: (text: string) => void;
@@ -18,7 +17,6 @@ export const TextManagement = (props: {
     contentIndex,
     content: _content,
     speakers,
-    toggleInsertSpeaker,
     onRemoveContent,
     handleClickSpeakerBtn,
     handleInputText,
@@ -55,7 +53,7 @@ export const TextManagement = (props: {
           onChange={(e) => handleInputText(e.currentTarget.value)}
         />
       </div>
-      <span class={`${toggleInsertSpeaker ? '' : 'd-none'} pb-3`}>
+      {/* <span class={`${toggleInsertSpeaker ? '' : 'd-none'} pb-3`}>
         <SpeakerBtnGroup
           key={`key-speaker-btn-group-${paragraphIndex}-${contentIndex}`}
           paragraphIndex={paragraphIndex}
@@ -73,7 +71,7 @@ export const TextManagement = (props: {
         onClick={() => handleClickRemoveContent()}
       >
         ✖️
-      </button>
+      </button> */}
     </Fragment>
   );
 };

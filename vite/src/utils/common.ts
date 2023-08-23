@@ -70,4 +70,11 @@ export namespace CommonUtil {
       reader.readAsArrayBuffer(blob);
     });
   }
+
+  export function random(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+  }
+  export function randomColor() {
+    return `rgba(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)}, 0.5)`;
+  }
 }
