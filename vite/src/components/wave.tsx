@@ -1,18 +1,18 @@
 import { h } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
-import WaveSurfer from 'wavesurfer.js';
-import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { PreviewService } from '../api/preview';
 import { useSubTitleManagementContext } from '../contexts/subTitle';
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions';
 import { CommonUtil } from '../utils/common';
+import WaveSurfer from 'wavesurfer.js';
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions';
 
 export const Wave = () => {
-  const { videoId } = useSubTitleManagementContext();
+  const { videoId, data } = useSubTitleManagementContext();
   const waveSurferRef = useRef(null);
+  const [waveSurfer, setWaveSurfer] = useState<WaveSurfer>();
 
   useEffect(() => {
-    let waveSurfer: any;
     if (waveSurferRef && waveSurferRef.current && videoId) {
       const wsBottomTimeline = TimelinePlugin.create({
         height: 25,
@@ -22,9 +22,7 @@ export const Wave = () => {
         },
       });
 
-      const wsRegions = RegionsPlugin.create();
-
-      const waveSurfer = WaveSurfer.create({
+      const ws = WaveSurfer.create({
         container: '#wave-form',
         waveColor: '#4F4A85',
         progressColor: '#383351',
@@ -35,22 +33,9 @@ export const Wave = () => {
         height: 100,
         minPxPerSec: 1,
         autoScroll: true,
-        plugins: [wsBottomTimeline, wsRegions],
+        plugins: [wsBottomTimeline],
       });
-
-      waveSurfer.on('ready', () => {
-        waveSurfer.zoom(90);
-        waveSurfer.pause();
-
-        wsRegions.addRegion({
-          start: 0,
-          end: 2,
-          content: 'Resize me',
-          color: CommonUtil.randomColor(),
-          drag: true,
-          resize: true,
-        });
-      });
+      setWaveSurfer(ws);
 
       // waveSurfer.on('interaction', (e) => {
       //   console.log(e);
@@ -71,7 +56,7 @@ export const Wave = () => {
           const audioBlob = new Blob([audioResponse], { type: 'audio/m4a' });
 
           console.log('audio loaded');
-          waveSurfer.loadBlob(audioBlob);
+          ws.loadBlob(audioBlob);
         } catch (error) {
           console.error(error);
         }
@@ -84,6 +69,55 @@ export const Wave = () => {
       waveSurfer && waveSurfer.destroy();
     };
   }, [videoId]);
+
+  useEffect(() => {
+    if (waveSurfer && data) {
+      waveSurfer.on('ready', () => {
+        waveSurfer.zoom(90);
+        waveSurfer.pause();
+
+        const wsRegions = RegionsPlugin.create();
+        waveSurfer.registerPlugin(wsRegions);
+
+        data.paragraphs.forEach((paragraph) => {
+          const start = paragraph.timestamp.from;
+          const end = paragraph.timestamp.to;
+          let text = '';
+          paragraph.contents.forEach((content, index) => {
+            if (index > 0) {
+              text += '\n\r';
+            }
+            text += content.text;
+          });
+          const startSec = CommonUtil.convertDurationToSeconds(
+            start.h,
+            start.m,
+            start.s,
+            start.ms
+          );
+          const endSec = CommonUtil.convertDurationToSeconds(
+            end.h,
+            end.m,
+            end.s,
+            end.ms
+          );
+          wsRegions.addRegion({
+            id: `region-1`,
+            start: startSec,
+            end: endSec,
+            content: text,
+            color: `rgba(255, 255, 255, 0.8)`,
+            drag: true,
+            resize: true,
+          });
+        });
+      });
+    }
+    if (data) {
+      data.paragraphs;
+    }
+  }, [waveSurfer, data]);
+
   return (
     <div class="footer">
       <div id="wave-form" class="wave-form" ref={waveSurferRef}></div>

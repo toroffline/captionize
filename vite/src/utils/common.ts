@@ -7,16 +7,36 @@ export namespace CommonUtil {
     return value || value === 0;
   }
 
-  export function convertDurationToSeconds(h: number, m: number, s: number) {
+  export function convertHourToSec(h: number) {
+    return h * 3600;
+  }
+
+  export function convertMinToSec(m: number) {
+    return m * 60;
+  }
+
+  export function convertMsToSec(ms: number) {
+    return ms * 0.001;
+  }
+
+  export function convertDurationToSeconds(
+    h: number,
+    m: number,
+    s: number,
+    ms: number
+  ) {
     let seconds = 0;
     if (h) {
-      seconds += h * 3600;
+      seconds += convertHourToSec(h);
     }
     if (m) {
-      seconds += m * 60;
+      seconds += convertMinToSec(m);
     }
     if (s) {
       seconds += s;
+    }
+    if (ms) {
+      seconds += convertMsToSec(ms);
     }
 
     return seconds;
@@ -74,6 +94,7 @@ export namespace CommonUtil {
   export function random(min: number, max: number) {
     return Math.random() * (max - min) + min;
   }
+
   export function randomColor() {
     return `rgba(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)}, 0.5)`;
   }

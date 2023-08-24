@@ -18,7 +18,7 @@ interface ParagraphContent {
 interface Paragraph {
   oldIndex: number;
   timestamp: ParagraphTimestamp;
-  timeStampDisplay: string;
+  timestampDisplay: string;
   contents: ParagraphContent[];
 }
 
