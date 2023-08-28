@@ -14,13 +14,18 @@ interface ContextValue {
     speakerId: number | null
   ) => void;
   exportData: () => void;
-  onSave: () => void;
+  onSave: () => Promise<boolean>;
   onRemoveContent: (paragraphIndex: number, contentIndex: number) => void;
   onAddContent: (paragraphIndex: number) => void;
   onInputText: (
     paragraphIndex: number,
     contentIndex: number,
     text: string
+  ) => void;
+  updateParagraphTime: (
+    index: number,
+    from: ParagraphTimestampInfo,
+    to: ParagraphTimestampInfo
   ) => void;
 }
 
@@ -31,10 +36,11 @@ const initialValue: ContextValue = {
   setToggleInsertSpeaker: () => {},
   setActiveSpeaker: () => {},
   exportData: () => {},
-  onSave: () => {},
+  onSave: () => Promise.resolve(false),
   onRemoveContent: () => {},
   onAddContent: () => {},
   onInputText: () => {},
+  updateParagraphTime: () => {},
 };
 
 const Context = createContext<ContextValue>(initialValue);
@@ -83,13 +89,15 @@ const SubTitleManagementProvider = (props: {
   async function onSave() {
     console.log('saving');
     const requestBody = { data: data?.paragraphs };
-    await axios
+    return await axios
       .post(`http://localhost:3000/api/save`, requestBody)
       .then(() => {
         console.log('save successfully');
+        return true;
       })
       .catch((error: any) => {
         console.error(error);
+        return false;
       });
   }
 
@@ -133,6 +141,22 @@ const SubTitleManagementProvider = (props: {
     });
   }
 
+  function updateParagraphTime(
+    index: number,
+    from: ParagraphTimestampInfo,
+    to: ParagraphTimestampInfo
+  ) {
+    setData((prev) => {
+      if (prev && prev.paragraphs) {
+        prev.paragraphs[index].timestamp.from = from;
+        prev.paragraphs[index].timestamp.to = to;
+        prev.paragraphs = [...prev.paragraphs];
+      }
+
+      return prev;
+    });
+  }
+
   function setToggleInsertSpeaker() {
     setDummyToggleInsertSpeaker(!toggleInsertSpeaker);
   }
@@ -154,9 +178,11 @@ const SubTitleManagementProvider = (props: {
         onRemoveContent,
         onAddContent,
         onInputText,
+        updateParagraphTime,
       }}
-      children={props.children}
-    />
+    >
+      {props.children}
+    </Context.Provider>
   );
 };
 

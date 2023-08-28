@@ -8,7 +8,7 @@ import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions';
 
 export const Wave = () => {
-  const { videoId, data } = useSubTitleManagementContext();
+  const { videoId, data, updateParagraphTime } = useSubTitleManagementContext();
   const waveSurferRef = useRef(null);
   const [waveSurfer, setWaveSurfer] = useState<WaveSurfer>();
 
@@ -18,7 +18,7 @@ export const Wave = () => {
         height: 25,
         style: {
           fontSize: '20px',
-          color: '#6A3274',
+          color: '#fff',
         },
       });
 
@@ -79,10 +79,10 @@ export const Wave = () => {
         const wsRegions = RegionsPlugin.create();
         waveSurfer.registerPlugin(wsRegions);
 
-        data.paragraphs.forEach((paragraph) => {
+        data.paragraphs.forEach((paragraph, index) => {
           const start = paragraph.timestamp.from;
           const end = paragraph.timestamp.to;
-          let text = '';
+          let text = `#${index + 1}\n\r`;
           paragraph.contents.forEach((content, index) => {
             if (index > 0) {
               text += '\n\r';
@@ -102,7 +102,7 @@ export const Wave = () => {
             end.ms
           );
           wsRegions.addRegion({
-            id: `region-1`,
+            id: `region-${index}`,
             start: startSec,
             end: endSec,
             content: text,
@@ -110,6 +110,13 @@ export const Wave = () => {
             drag: true,
             resize: true,
           });
+        });
+
+        wsRegions.on('region-updated', (region) => {
+          const index = +region.id.split('-')[1];
+          const from = CommonUtil.convertSecondsToTime(region.start);
+          const to = CommonUtil.convertSecondsToTime(region.end);
+          updateParagraphTime(index, from, to);
         });
       });
     }

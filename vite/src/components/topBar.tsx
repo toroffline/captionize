@@ -1,12 +1,30 @@
 import { h } from 'preact';
 import { useSubTitleManagementContext } from '../contexts/subTitle';
+import { useState } from 'preact/hooks';
+import { Toast, ToastBody, ToastContainer } from 'react-bootstrap';
+
+const hideTimeout = 3000;
+const alertPosition = 'top-end';
 
 export const TopBar = () => {
   const { setToggleInsertSpeaker, exportData, onSave } =
     useSubTitleManagementContext();
+  const [popSaveSuccess, setPopSaveSuccess] = useState(false);
+  const [popSaveFailed, setPopSaveFailed] = useState(false);
 
-  function handleSave() {
-    onSave();
+  async function handleSave() {
+    const isSuccess = await onSave();
+    if (isSuccess) {
+      setPopSaveSuccess(true);
+      setTimeout(() => {
+        setPopSaveSuccess(false);
+      }, hideTimeout);
+    } else {
+      setPopSaveFailed(true);
+      setTimeout(() => {
+        setPopSaveFailed(false);
+      }, hideTimeout);
+    }
   }
 
   function handleExport() {
@@ -49,6 +67,18 @@ export const TopBar = () => {
         </div>
       </div>
       <hr class="mb-0" />
+
+      <ToastContainer position={alertPosition}>
+        <Toast show={popSaveSuccess}>
+          <ToastBody>Save success 🎉</ToastBody>
+        </Toast>
+      </ToastContainer>
+
+      <ToastContainer position={alertPosition}>
+        <Toast show={popSaveFailed}>
+          <ToastBody>Save failed ❌</ToastBody>
+        </Toast>
+      </ToastContainer>
     </>
   );
 };

@@ -98,4 +98,28 @@ export namespace CommonUtil {
   export function randomColor() {
     return `rgba(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)}, 0.5)`;
   }
+
+  export function convertSecondsToTime(seconds: number) {
+    const millisecInSecond = 1000;
+    const secInMinute = 60;
+    const minInHour = 60;
+
+    const hours = Math.floor(seconds / (secInMinute * minInHour));
+    seconds -= hours * secInMinute * minInHour;
+
+    const minutes = Math.floor(seconds / secInMinute);
+    seconds -= minutes * secInMinute;
+
+    const milliseconds = Math.round(
+      (seconds - Math.floor(seconds)) * millisecInSecond
+    );
+    seconds = Math.floor(seconds);
+
+    return {
+      h: hours,
+      m: minutes,
+      s: seconds,
+      ms: milliseconds,
+    };
+  }
 }
