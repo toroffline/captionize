@@ -8,7 +8,13 @@ import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions';
 
 export const Wave = () => {
-  const { videoId, data, updateParagraphTime } = useSubTitleManagementContext();
+  const {
+    videoId,
+    data,
+    currentRegionClicked,
+    updateParagraphTime,
+    setCurrentRegionClicked,
+  } = useSubTitleManagementContext();
   const waveSurferRef = useRef(null);
   const [waveSurfer, setWaveSurfer] = useState<WaveSurfer>();
 
@@ -76,7 +82,7 @@ export const Wave = () => {
         waveSurfer.zoom(90);
         waveSurfer.pause();
 
-        const wsRegions = RegionsPlugin.create();
+        const wsRegions: RegionsPlugin = RegionsPlugin.create();
         waveSurfer.registerPlugin(wsRegions);
 
         data.paragraphs.forEach((paragraph, index) => {
@@ -118,12 +124,29 @@ export const Wave = () => {
           const to = CommonUtil.convertSecondsToTime(region.end);
           updateParagraphTime(index, from, to);
         });
+
+        wsRegions.on('region-clicked', (region) => {
+          const index = +region.id.split('-')[1];
+          setCurrentRegionClicked(index);
+        });
       });
     }
     if (data) {
       data.paragraphs;
     }
   }, [waveSurfer, data]);
+
+  useEffect(() => {
+    if (waveSurfer && currentRegionClicked) {
+      const plugins: any = waveSurfer.getActivePlugins();
+      for (let plugin of plugins) {
+        if (!!plugin['regions']) {
+          const start = plugin.regions[currentRegionClicked].start;
+          waveSurfer.setTime(start);
+        }
+      }
+    }
+  }, [currentRegionClicked]);
 
   return (
     <div class="footer">

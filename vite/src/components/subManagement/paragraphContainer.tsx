@@ -1,18 +1,26 @@
 import { h } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { CommonUtil } from '../../utils/common';
 import { Button, Overlay, Popover, PopoverBody } from 'react-bootstrap';
 import { ContentsManagement } from './contentsManagement';
+import { useSubTitleManagementContext } from '../../contexts/subTitle';
 
 export const ParagraphContainer = (props: {
+  index: number;
   paragraphIndex: number;
   paragraph: Paragraph;
   speakers: Speaker[];
+  focus?: boolean;
 }) => {
-  const { paragraphIndex, paragraph, speakers } = props;
+  const { setCurrentRegionClicked } = useSubTitleManagementContext();
+  const { index, paragraphIndex, paragraph, speakers, focus } = props;
   const [showActions, setShowActions] = useState(false);
   const [focusParagraph, setFocusParagraph] = useState(false);
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    setFocusParagraph(!!focus);
+  }, [focus]);
 
   function composeTimestamp(timestamp: ParagraphTimestampInfo) {
     const delimiter = ':';
@@ -44,8 +52,15 @@ export const ParagraphContainer = (props: {
     }
   }
 
+  function handleClickParagraph() {
+    setCurrentRegionClicked(index);
+  }
+
   return (
-    <>
+    <div
+      id={`paragraph-container-${index}`}
+      onClick={() => handleClickParagraph()}
+    >
       <Overlay
         target={containerRef.current}
         show={showActions}
@@ -82,6 +97,6 @@ export const ParagraphContainer = (props: {
           contents={paragraph.contents}
         />
       </div>
-    </>
+    </div>
   );
 };

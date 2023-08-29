@@ -4,14 +4,20 @@ import { useEffect, useState } from 'preact/hooks';
 import { ParagraphContainer } from './paragraphContainer';
 
 export const SubManagement = () => {
-  const { data } = useSubTitleManagementContext();
+  const { data, currentRegionClicked } = useSubTitleManagementContext();
   const [paragraphs, setParagraphs] = useState<Paragraph[]>([]);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
 
-  console.log('Sub management update');
+  useEffect(() => {
+    const element = document.getElementById(
+      `paragraph-container-${currentRegionClicked}`
+    );
+    if (element) {
+      element.scrollIntoView();
+    }
+  }, [currentRegionClicked]);
 
   useEffect(() => {
-    console.log('[SubManagement] data changed');
     if (data && paragraphs.length === 0 && speakers.length === 0) {
       setParagraphs(data.paragraphs);
       setSpeakers(data.speakers);
@@ -24,9 +30,11 @@ export const SubManagement = () => {
         return (
           <>
             <ParagraphContainer
+              index={pi}
               paragraphIndex={pi}
               paragraph={p}
               speakers={speakers}
+              focus={currentRegionClicked === pi}
             />
             <hr class="mt-0" />
           </>

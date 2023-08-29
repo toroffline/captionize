@@ -7,14 +7,15 @@ interface ContextValue {
   data?: ParagraphResponse;
   videoId?: string;
   toggleInsertSpeaker: boolean;
-  onSaving: boolean;
+  onSaving?: boolean;
+  currentRegionClicked?: number;
   setToggleInsertSpeaker: () => void;
   setActiveSpeaker: (
     paragraphIndex: number,
     contentIndex: number,
     speakerId: number | null
   ) => void;
-  exportData: () => void;
+  setCurrentRegionClicked: (paragraphIndex: number) => void;
   onSave: () => Promise<boolean>;
   onRemoveContent: (paragraphIndex: number, contentIndex: number) => void;
   onAddContent: (paragraphIndex: number) => void;
@@ -28,6 +29,7 @@ interface ContextValue {
     from: ParagraphTimestampInfo,
     to: ParagraphTimestampInfo
   ) => void;
+  exportData: () => void;
 }
 
 const initialValue: ContextValue = {
@@ -35,14 +37,16 @@ const initialValue: ContextValue = {
   videoId: undefined,
   toggleInsertSpeaker: true,
   onSaving: false,
+  currentRegionClicked: undefined,
   setToggleInsertSpeaker: () => {},
   setActiveSpeaker: () => {},
-  exportData: () => {},
+  setCurrentRegionClicked: () => {},
   onSave: () => Promise.resolve(false),
   onRemoveContent: () => {},
   onAddContent: () => {},
   onInputText: () => {},
   updateParagraphTime: () => {},
+  exportData: () => {},
 };
 
 const Context = createContext<ContextValue>(initialValue);
@@ -57,6 +61,9 @@ const SubTitleManagementProvider = (props: {
   const [onSaving, setOnSaving] = useState<boolean>(false);
   const [toggleInsertSpeaker, setDummyToggleInsertSpeaker] =
     useState<boolean>(true);
+  const [currentRegionClicked, setCurrentRegionClicked] = useState<
+    number | undefined
+  >();
 
   function setActiveSpeaker(
     paragraphIndex: number,
@@ -179,8 +186,10 @@ const SubTitleManagementProvider = (props: {
         videoId,
         toggleInsertSpeaker,
         onSaving,
+        currentRegionClicked,
         setToggleInsertSpeaker,
         setActiveSpeaker,
+        setCurrentRegionClicked,
         exportData,
         onSave,
         onRemoveContent,
