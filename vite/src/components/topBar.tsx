@@ -1,13 +1,14 @@
 import { h } from 'preact';
 import { useSubTitleManagementContext } from '../contexts/subTitle';
 import { useState } from 'preact/hooks';
-import { Toast, ToastBody, ToastContainer } from 'react-bootstrap';
+import { Spinner, Toast, ToastBody, ToastContainer } from 'react-bootstrap';
 
 const hideTimeout = 3000;
 const alertPosition = 'top-end';
 
-export const TopBar = () => {
-  const { setToggleInsertSpeaker, exportData, onSave } =
+export const TopBar = (props: any) => {
+  console.log(props);
+  const { onSaving, setToggleInsertSpeaker, exportData, onSave } =
     useSubTitleManagementContext();
   const [popSaveSuccess, setPopSaveSuccess] = useState(false);
   const [popSaveFailed, setPopSaveFailed] = useState(false);

@@ -7,6 +7,7 @@ interface ContextValue {
   data?: ParagraphResponse;
   videoId?: string;
   toggleInsertSpeaker: boolean;
+  onSaving: boolean;
   setToggleInsertSpeaker: () => void;
   setActiveSpeaker: (
     paragraphIndex: number,
@@ -33,6 +34,7 @@ const initialValue: ContextValue = {
   data: undefined,
   videoId: undefined,
   toggleInsertSpeaker: true,
+  onSaving: false,
   setToggleInsertSpeaker: () => {},
   setActiveSpeaker: () => {},
   exportData: () => {},
@@ -49,8 +51,10 @@ const useSubTitleManagementContext = () => useContext(Context);
 const SubTitleManagementProvider = (props: {
   children?: ComponentChildren;
 }) => {
+  console.log('<SubTitleManagementProvider /> re-render');
   const [data, setData] = useState<ParagraphResponse | undefined>();
   const [videoId] = useState<string | undefined>('u0aWLBjBMgw');
+  const [onSaving, setOnSaving] = useState<boolean>(false);
   const [toggleInsertSpeaker, setDummyToggleInsertSpeaker] =
     useState<boolean>(true);
 
@@ -88,7 +92,9 @@ const SubTitleManagementProvider = (props: {
 
   async function onSave() {
     console.log('saving');
+    setOnSaving(true);
     const requestBody = { data: data?.paragraphs };
+
     return await axios
       .post(`http://localhost:3000/api/save`, requestBody)
       .then(() => {
@@ -98,7 +104,8 @@ const SubTitleManagementProvider = (props: {
       .catch((error: any) => {
         console.error(error);
         return false;
-      });
+      })
+      .finally(() => setOnSaving(false));
   }
 
   function onRemoveContent(paragraphIndex: number, contentIndex: number) {
@@ -171,6 +178,7 @@ const SubTitleManagementProvider = (props: {
         data,
         videoId,
         toggleInsertSpeaker,
+        onSaving,
         setToggleInsertSpeaker,
         setActiveSpeaker,
         exportData,
